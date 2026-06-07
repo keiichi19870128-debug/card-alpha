@@ -1,0 +1,192 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id         String           @id @default(uuid())
+  name       String           @unique
+  slug       String           @unique
+  logoUrl    String?
+  isActive   Boolean          @default(true)
+  createdAt  DateTime         @default(now()) @map("created_at")
+  updatedAt  DateTime         @updatedAt @map("updated_at")
+  strategies BudgetStrategy[]
+  cards      Card[]
+
+  @@map("games")
+}
+
+model Card {
+  id             String             @id @default(uuid())
+  name           String
+  imageUrl       String?            @map("image_url")
+  currentPrice   Int                @map("current_price")
+  rating         String
+  gameId         String             @map("game_id")
+  cardCode       String?            @map("card_code")
+  rarity         String?
+  setName        String?            @map("set_name")
+  releaseDate    DateTime?          @map("release_date")
+  reason         String?
+  isFeatured     Boolean            @default(false) @map("is_featured")
+  status         String             @default("active")
+  createdAt      DateTime           @default(now()) @map("created_at")
+  updatedAt      DateTime           @updatedAt @map("updated_at")
+  game           Game               @relation(fields: [gameId], references: [id])
+  priceAlerts    PriceAlert[]
+  priceHistories PriceHistory[]
+  strategyItems  StrategyCardItem[]
+  watchlists     Watchlist[]
+
+  @@index([gameId])
+  @@index([rating])
+  @@index([isFeatured])
+  @@map("cards")
+}
+
+model ArticleCategory {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  sortOrder   Int       @default(0) @map("sort_order")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  articles    Article[]
+
+  @@map("article_categories")
+}
+
+model Article {
+  id              String          @id @default(uuid())
+  title           String
+  slug            String          @unique
+  content         String
+  categoryId      String          @map("category_id")
+  featuredImage   String?         @map("featured_image")
+  isPublished     Boolean         @default(false) @map("is_published")
+  isPremium       Boolean         @default(false) @map("is_premium")
+  publishedAt     DateTime?       @map("published_at")
+  metaTitle       String?         @map("meta_title")
+  metaDescription String?         @map("meta_description")
+  viewCount       Int             @default(0) @map("view_count")
+  createdAt       DateTime        @default(now()) @map("created_at")
+  updatedAt       DateTime        @updatedAt @map("updated_at")
+  category        ArticleCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
+  @@index([isPublished, publishedAt])
+  @@map("articles")
+}
+
+model BudgetStrategy {
+  id           String             @id @default(uuid())
+  budgetAmount Int                @unique @map("budget_amount")
+  title        String
+  description  String
+  content      String?
+  isPremium    Boolean            @default(false) @map("is_premium")
+  gameId       String             @map("game_id")
+  sortOrder    Int                @default(0) @map("sort_order")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  game         Game               @relation(fields: [gameId], references: [id])
+  items        StrategyCardItem[]
+
+  @@map("budget_strategies")
+}
+
+model StrategyCardItem {
+  id             String         @id @default(uuid())
+  strategyId     String         @map("strategy_id")
+  cardId         String         @map("card_id")
+  recommendedQty Int            @default(1) @map("recommended_qty")
+  sortOrder      Int            @default(0) @map("sort_order")
+  description    String?
+  card           Card           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  strategy       BudgetStrategy @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@unique([strategyId, cardId])
+  @@map("strategy_card_items")
+}
+
+model User {
+  id               String         @id @default(uuid())
+  email            String         @unique
+  passwordHash     String         @map("password_hash")
+  name             String?
+  role             String         @default("user")
+  emailVerified    Boolean        @default(false) @map("email_verified")
+  stripeCustomerId String?        @map("stripe_customer_id")
+  isPremium        Boolean        @default(false) @map("is_premium")
+  premiumSince     DateTime?      @map("premium_since")
+  premiumUntil     DateTime?      @map("premium_until")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+  priceAlerts      PriceAlert[]
+  subscriptions    Subscription[]
+  watchlists       Watchlist[]
+
+  @@map("users")
+}
+
+model Subscription {
+  id                   String   @id @default(uuid())
+  userId               String   @map("user_id")
+  stripeSubscriptionId String   @unique @map("stripe_subscription_id")
+  status               String
+  planName             String   @map("plan_name")
+  priceAmount          Int      @map("price_amount")
+  currentPeriodStart   DateTime @map("current_period_start")
+  currentPeriodEnd     DateTime @map("current_period_end")
+  createdAt            DateTime @default(now()) @map("created_at")
+  updatedAt            DateTime @updatedAt @map("updated_at")
+  user                 User     @relation(fields: [userId], references: [id])
+
+  @@map("subscriptions")
+}
+
+model Watchlist {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  cardId    String   @map("card_id")
+  note      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  card      Card     @relation(fields: [cardId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, cardId])
+  @@map("watchlists")
+}
+
+model PriceAlert {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  cardId      String    @map("card_id")
+  targetPrice Int       @map("target_price")
+  condition   String    @default("below")
+  isActive    Boolean   @default(true) @map("is_active")
+  triggeredAt DateTime? @map("triggered_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  card        Card      @relation(fields: [cardId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@map("price_alerts")
+}
+
+model PriceHistory {
+  id         String   @id @default(uuid())
+  cardId     String   @map("card_id")
+  price      Int
+  recordedAt DateTime @map("recorded_at")
+  source     String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  card       Card     @relation(fields: [cardId], references: [id])
+
+  @@unique([cardId, recordedAt])
+  @@map("price_histories")
+}
