@@ -1,16 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getStrategyByBudget, getAllStrategies, formatPrice } from "@/lib/db";
+import { getStrategyByBudget, formatPrice } from "@/lib/db";
 
 type Props = {
   params: Promise<{ budget: string }>;
 };
-
-export async function generateStaticParams() {
-  const strategies = await getAllStrategies();
-  return strategies.map((s) => ({ budget: String(s.budget_amount) }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await params;

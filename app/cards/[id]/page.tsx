@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getCardById, getAllCards, formatPrice, getDb } from "@/lib/db";
+import { getCardById, formatPrice, getDb } from "@/lib/db";
 import { CardImage } from "@/app/components/CardImage";
 import { PriceChart } from "@/app/components/PriceChart";
 import { AnalysisScoreCard } from "@/app/components/AnalysisScore";
@@ -12,11 +12,6 @@ import { getServerSession } from "next-auth";
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-export async function generateStaticParams() {
-  const cards = await getAllCards();
-  return cards.map((c) => ({ id: c.id }));
-}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = await params;
