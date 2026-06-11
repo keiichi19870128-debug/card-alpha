@@ -59,7 +59,10 @@ const fallbackImages = {
 async function fetchJapaneseCardImage(name) {
   const baseName = name.replace(/（[^）]+）/g, '').trim();
   const searchKeyword = cardSearchMap[baseName];
-  if (!searchKeyword) return fallbackImages[baseName] || null;
+  if (!searchKeyword) {
+    const fallback = fallbackImages[baseName];
+    return fallback ? fallback + '.png' : null;
+  }
 
   try {
     const response = await fetch(`https://api.tcgdex.net/v2/ja/cards?name=${encodeURIComponent(searchKeyword)}`);
@@ -69,13 +72,15 @@ async function fetchJapaneseCardImage(name) {
       // 最初のカードの画像URLを返す
       const card = data[0];
       if (card.image) {
-        return card.image;
+        return card.image + '.png';
       }
     }
-    return fallbackImages[baseName] || null;
+    const fallback = fallbackImages[baseName];
+    return fallback ? fallback + '.png' : null;
   } catch (error) {
     console.error(`Error fetching ${name}:`, error);
-    return fallbackImages[baseName] || null;
+    const fallback = fallbackImages[baseName];
+    return fallback ? fallback + '.png' : null;
   }
 }
 
