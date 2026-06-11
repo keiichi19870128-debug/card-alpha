@@ -61,7 +61,7 @@ async function fetchJapaneseCardImage(name) {
   const searchKeyword = cardSearchMap[baseName];
   if (!searchKeyword) {
     const fallback = fallbackImages[baseName];
-    return fallback ? fallback + '.png' : null;
+    return fallback ? fallback + '/high.png' : null;
   }
 
   try {
@@ -72,15 +72,15 @@ async function fetchJapaneseCardImage(name) {
       // 最初のカードの画像URLを返す
       const card = data[0];
       if (card.image) {
-        return card.image + '.png';
+        return card.image + '/high.png';
       }
     }
     const fallback = fallbackImages[baseName];
-    return fallback ? fallback + '.png' : null;
+    return fallback ? fallback + '/high.png' : null;
   } catch (error) {
     console.error(`Error fetching ${name}:`, error);
     const fallback = fallbackImages[baseName];
-    return fallback ? fallback + '.png' : null;
+    return fallback ? fallback + '/high.png' : null;
   }
 }
 
