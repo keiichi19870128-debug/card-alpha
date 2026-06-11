@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "www.pokemon-card.com",
+        hostname: "assets.tcgdex.net",
       },
     ],
   },
